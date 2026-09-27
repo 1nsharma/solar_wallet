@@ -18,7 +18,7 @@ interface Consumer {
 export default function ProviderDashboard({ onNavigate, onRoleSwitch }: Props) {
   const [solarProduction, setSolarProduction] = useState(1200);
   const [homeUsage, setHomeUsage] = useState(400);
-  const [totalEarned, setTotalEarned] = useState(2150);
+  const [totalEarned] = useState(2150);
   const [consumers, setConsumers] = useState<Consumer[]>([
     { id: '1', name: 'उपयोगकर्ता A', flat: 'Flat 101', active: true, load: 450, todayEarning: 45 },
     { id: '2', name: 'उपयोगकर्ता B', flat: 'Flat 102', active: false, load: 0, todayEarning: 12 },
@@ -169,13 +169,21 @@ export default function ProviderDashboard({ onNavigate, onRoleSwitch }: Props) {
           </div>
         </div>
 
-        {/* Role Switch */}
-        <button
-          onClick={onRoleSwitch}
-          className="w-full py-3 rounded-xl border-2 border-green-200 text-green-700 font-medium text-sm hover:bg-green-50 transition-all"
-        >
-          🔄 उपभोक्ता डैशबोर्ड देखें
-        </button>
+        {/* Role Switch & Setup Guide */}
+        <div className="flex gap-2">
+          <button
+            onClick={onRoleSwitch}
+            className="flex-1 py-3 rounded-xl border-2 border-green-200 text-green-700 font-medium text-sm hover:bg-green-50 transition-all"
+          >
+            🔄 उपभोक्ता डैशबोर्ड
+          </button>
+          <button
+            onClick={() => onNavigate('setup')}
+            className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-all"
+          >
+            🛠️ Dev Guide
+          </button>
+        </div>
       </div>
 
       {/* Bottom Navigation */}
