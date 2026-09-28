@@ -1,143 +1,71 @@
-# SolarSync - P2P Solar Energy Sharing Platform
+# SolarSync
 
-**स्वच्छ ऊर्जा, पारदर्शी साझाकरण**
+**SolarSync** is a full‑stack microgrid management platform that combines:
+- **ESP32 firmware** (OTA‑enabled MQTT telemetry)
+- **Pricing Agent** (Python service with dynamic pricing via MQTT + Flask API)
+- **Notification Agent** (Node.js server for Firebase Cloud Messaging)
+- **React + Vite Admin Dashboard** (landlord/manager UI)
+- **Consumer/Provider mobile UI** (already shipped)
 
-A peer-to-peer solar energy sharing platform enabling landlords with rooftop solar systems to share excess energy with tenants through a transparent, prepaid, IoT-enabled system.
-
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐     MQTT      ┌─────────────────┐     REST API    ┌─────────────────┐
-│   ESP32 +       │ ◄──────────► │   Backend       │ ◄────────────► │   Mobile App    │
-│   PZEM-004T     │              │   (Node.js)     │                │   (Flutter)     │
-│   Smart Meter   │              │   + MQTT Client │                │   Consumer &    │
-└─────────────────┘              │                 │                │   Provider UI   │
-                                 │   ┌─────────┐   │                └─────────────────┘
-                                 │   │PostgreSQL│   │
-                                 │   │ + InfluxDB│  │
-                                 │   └─────────┘   │
-                                 └─────────────────┘
-```
-
-## 📁 Project Structure
-
-```
-SolarSync/
-├── hardware/              # ESP32 firmware
-│   └── esp32_mqtt.ino    # Smart meter code
-├── backend/               # Node.js server
-│   ├── server.js         # Main server with MQTT + REST API
-│   ├── package.json      # Dependencies
-│   └── .env              # Environment variables
-├── database/             # Database schema
-│   └── schema.sql        # PostgreSQL tables + views
-├── mobile_app/           # Flutter app
-│   └── lib/screens/
-│       ├── consumer_dashboard.dart
-│       └── provider_dashboard.dart
-├── src/                  # React web dashboard (MVP demo)
-│   ├── App.tsx
-│   └── components/
-│       ├── OnboardingScreen.tsx
-│       ├── ConsumerDashboard.tsx
-│       ├── ProviderDashboard.tsx
-│       └── WalletScreen.tsx
-├── legal/                # Legal documents
-└── README.md
-```
-
-## 🚀 Quick Start
-
-### 1. Database Setup
+## Quick start
 ```bash
-# Create database
-createdb solarsync
+# 1️⃣ Clone the repo
+git clone <repo-url>
+cd solar_wallet
 
-# Run schema
-psql -U postgres -d solarsync -f database/schema.sql
-```
-
-### 2. Backend Server
-```bash
-cd backend
+# 2️⃣ Install Node dependencies
 npm install
-cp .env.example .env  # Edit with your credentials
-npm start
-```
 
-### 3. ESP32 Setup
-1. Open `hardware/esp32_mqtt.ino` in Arduino IDE
-2. Install libraries: `PubSubClient`, `PZEM004Tv30`, `ArduinoJson`
-3. Update WiFi credentials and MQTT broker
-4. Flash to ESP32
-
-### 4. Mobile App
-```bash
-cd mobile_app
-flutter pub get
-flutter run
-```
-
-### 5. Web Dashboard (Demo)
-```bash
-npm install
+# 3️⃣ Run the web app (development)
 npm run dev
+
+# 4️⃣ Start the Pricing Agent (Python)
+cd pricing_agent
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+python pricing_agent.py
+
+# 5️⃣ Start the Notification Agent (Node)
+cd ../notification_agent
+npm install
+node notification_agent.js
 ```
 
-## 🔧 Technology Stack
+## Architecture
+```mermaid
+flowchart TD
+    subgraph ESP32_Firmware[ESP32 Firmware]
+        A[ESP32] -->|MQTT telemetry| B[MQTT Broker]
+    end
+    subgraph Backend[Backend Services]
+        B --> C[Pricing Agent (Python Flask)]
+        B --> D[Notification Agent (Node.js FCM)]
+    end
+    subgraph Frontend[Web Frontend]
+        E[React + Vite] -->|API calls| C
+        E -->|Push notifications| D
+    end
+    subgraph Mobile[Mobile Apps]
+        F[Consumer UI] -->|MQTT| B
+        G[Provider UI] -->|MQTT| B
+    end
+    A -. OTA .- F
+    A -. OTA .- G
+    style ESP32_Firmware fill:#1e3a8a,color:#fff,stroke:#3b82f6
+    style Backend fill:#065f46,color:#fff,stroke:#10b981
+    style Frontend fill:#4c1d95,color:#fff,stroke:#a78bfa
+    style Mobile fill:#8b5cf6,color:#fff,stroke:#c084fc
+```
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| IoT Device | ESP32 + PZEM-004T | Energy metering & relay control |
-| Protocol | MQTT | Real-time bidirectional communication |
-| Backend | Node.js + Express | REST API + MQTT client |
-| Database | PostgreSQL | User data, wallet, transactions |
-| Time-Series | InfluxDB | Energy meter readings |
-| Mobile | Flutter | Cross-platform app |
-| Web | React + Vite + Tailwind | Dashboard & demo |
-
-## 🔑 Key Features
-
-- ✅ **Prepaid Wallet System** - UPI recharge, auto-cutoff at ₹0
-- ✅ **Real-Time Tracking** - Per-second consumption monitoring
-- ✅ **Dynamic Pricing** - Supply/demand based rate adjustment
-- ✅ **Safety Protection** - Over-voltage, over-current auto-cutoff
-- ✅ **Dispute-Proof Logs** - NABL-calibrated meter data with timestamps
-- ✅ **Remote Control** - Provider can disconnect consumers remotely
-- ✅ **Legal Compliance** - Digital consent for Shared Green Energy Agreement
-
-## 📊 MQTT Topics
-
-| Topic | Direction | Description |
-|-------|-----------|-------------|
-| `solarsync/{device_id}/data` | ESP32 → Server | Energy readings (every 5s) |
-| `solarsync/{device_id}/command` | Server → ESP32 | CUTOFF/RESTORE commands |
-| `solarsync/{device_id}/status` | ESP32 → Server | Device status updates |
-| `solarsync/{device_id}/alert` | ESP32 → Server | Safety alerts |
-| `solarsync/broadcast/rate` | Server → All | Rate change notifications |
-
-## 🔒 Security
-
-- JWT-based authentication
-- Rate limiting on all API endpoints
-- Input validation and sanitization
-- SQL injection prevention (parameterized queries)
-- `.gitignore` excludes all secrets
-- HTTPS in production
-- Device-level command authentication
-
-## 📈 MVP Success Metrics
-
-1. **Zero Payment Disputes** - 95% reduction in billing disputes
-2. **User Retention** - 80%+ active usage after 30 days
-3. **System Uptime** - 99% IoT device + server uptime
-
-## 📝 License
-
-MIT License - See LICENSE file for details.
+## Deployment checklist
+- [ ] Create a **Firebase project** and download `serviceAccountKey.json` for the Notification Agent.
+- [ ] Set environment variables for MQTT broker (`MQTT_BROKER`, `MQTT_PORT`, `MQTT_TOPIC`).
+- [ ] Configure OTA Wi‑Fi credentials in `esp32_mqtt_firmware.ino`.
+- [ ] Deploy the React app to a static host (e.g., Firebase Hosting or Vercel).
+- [ ] Run the Pricing Agent on a server reachable by the MQTT broker.
+- [ ] Verify push notifications work on mobile devices.
+- [ ] Enable HTTPS for all API endpoints.
 
 ---
 
-**Built with ☀️ for a sustainable future**
+**Enjoy your SolarSync system!**

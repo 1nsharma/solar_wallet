@@ -83,3 +83,7 @@ desktop.ini
 **/service-account*.json
 **/firebase*.json
 .next/
+
+# Temporary / Extraneous projects
+admin-dashboard/
+gitforge/
