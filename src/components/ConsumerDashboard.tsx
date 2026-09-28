@@ -13,11 +13,9 @@ export default function ConsumerDashboard({ walletBalance, isSupplyActive, onTog
   const [currentLoad, setCurrentLoad] = useState(450);
   const [currentRate, setCurrentRate] = useState(6.50);
   const [showAlert, setShowAlert] = useState(true);
-  const [time, setTime] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTime(t => t + 1);
       // Simulate load fluctuation
       setCurrentLoad(400 + Math.floor(Math.random() * 100));
     }, 1000);
@@ -150,13 +148,21 @@ export default function ConsumerDashboard({ walletBalance, isSupplyActive, onTog
           </div>
         </div>
 
-        {/* Role Switch */}
-        <button
-          onClick={onRoleSwitch}
-          className="w-full py-3 rounded-xl border-2 border-green-200 text-green-700 font-medium text-sm hover:bg-green-50 transition-all"
-        >
-          🔄 प्रदाता डैशबोर्ड देखें
-        </button>
+        {/* Role Switch & Setup Guide */}
+        <div className="flex gap-2">
+          <button
+            onClick={onRoleSwitch}
+            className="flex-1 py-3 rounded-xl border-2 border-green-200 text-green-700 font-medium text-sm hover:bg-green-50 transition-all"
+          >
+            🔄 प्रदाता डैशबोर्ड
+          </button>
+          <button
+            onClick={() => onNavigate('setup')}
+            className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-all"
+          >
+            🛠️ Dev Guide
+          </button>
+        </div>
       </div>
 
       {/* Bottom Navigation */}
